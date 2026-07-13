@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>文章 → AI Markdown</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/turndown/7.2.0/turndown.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/15.0.6/marked.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#0a0a0f;--surface:#12121a;--card:#1a1a26;--border:#2a2a3a;--text:#d0d0dd;--text-dim:#707088;--accent:#7c5cfc;--accent-dim:#5a3ec8;--green:#4ade80;--radius:10px;--font:-apple-system,'Microsoft YaHei','PingFang SC',sans-serif}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;padding:16px 12px 40px}
+h1{font-size:20px;font-weight:700;margin-bottom:6px;letter-spacing:0.5px}
+h1 span{color:var(--accent)}
+.sub{font-size:13px;color:var(--text-dim);margin-bottom:20px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:14px}
+.card-label{font-size:12px;color:var(--text-dim);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
+.meta-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.meta-row input,.meta-full input{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text);font-size:14px;font-family:var(--font);width:100%;outline:none;transition:border .2s}
+.meta-row input:focus,.meta-full input:focus{border-color:var(--accent)}
+.meta-full{margin-bottom:8px}
+textarea{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:10px;color:var(--text);font-size:14px;font-family:var(--font);line-height:1.6;resize:vertical;min-height:120px;max-height:50vh;outline:none;transition:border .2s}
+textarea:focus{border-color:var(--accent)}
+textarea::placeholder{color:var(--text-dim);font-size:13px}
+.btn-row{display:flex;gap:8px;margin:12px 0}
+.btn{flex:1;padding:10px;border:none;border-radius:6px;font-size:14px;font-family:var(--font);font-weight:600;cursor:pointer;transition:all .2s;text-align:center}
+.btn-primary{background:var(--accent);color:#fff;position:relative}
+.btn-primary:active{background:var(--accent-dim);transform:scale(0.98)}
+.btn-primary:disabled{background:var(--border);color:var(--text-dim);cursor:not-allowed}
+.btn-secondary{background:var(--surface);color:var(--text);border:1px solid var(--border)}
+.btn-secondary:active{background:var(--border)}
+.btn-sm{background:var(--surface);color:var(--text-dim);border:1px solid var(--border);border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer;font-family:var(--font);transition:all .2s}
+.btn-sm:active{background:var(--border);color:var(--text)}
+.hint-key{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:11px;opacity:0.5;font-weight:400;pointer-events:none}
+.tabs{display:flex;gap:4px;margin-bottom:10px;background:var(--surface);border-radius:6px;padding:3px}
+.tab{flex:1;padding:7px;text-align:center;font-size:13px;border:none;background:transparent;color:var(--text-dim);border-radius:4px;cursor:pointer;font-family:var(--font);transition:all .2s}
+.tab.active{background:var(--accent);color:#fff}
+.output-area{position:relative}
+.output-area pre{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:12px;font-size:13px;line-height:1.6;overflow-x:auto;white-space:pre-wrap;word-break:break-word;color:var(--text);max-height:60vh;overflow-y:auto;font-family:'Cascadia Code','Fira Code','Consolas',monospace}
+.output-area .preview-body{padding:12px;line-height:1.8;font-size:14px}
+.output-area .preview-body h1{font-size:22px;margin:20px 0 10px}
+.output-area .preview-body h2{font-size:18px;margin:18px 0 8px;color:var(--accent)}
+.output-area .preview-body h3{font-size:16px;margin:14px 0 6px}
+.output-area .preview-body p{margin:8px 0}
+.output-area .preview-body blockquote{border-left:3px solid var(--accent);padding:6px 12px;margin:8px 0;color:var(--text-dim);background:var(--surface);border-radius:0 4px 4px 0}
+.output-area .preview-body code{background:var(--surface);padding:1px 5px;border-radius:3px;font-size:13px}
+.output-area .preview-body pre{background:var(--surface);border:1px solid var(--border);padding:12px;border-radius:6px;overflow-x:auto;margin:10px 0}
+.output-area .preview-body pre code{background:none;padding:0;border-radius:0}
+.output-area .preview-body ul,.output-area .preview-body ol{padding-left:20px;margin:6px 0}
+.output-area .preview-body li{margin:3px 0}
+.output-area .preview-body a{color:var(--accent);text-decoration:none}
+.output-area .preview-body a:hover{text-decoration:underline}
+.output-area .preview-body img{max-width:100%;border-radius:4px;margin:8px 0}
+.output-area .preview-body table{border-collapse:collapse;width:100%;margin:10px 0;font-size:13px}
+.output-area .preview-body th,.output-area .preview-body td{border:1px solid var(--border);padding:6px 10px;text-align:left}
+.output-area .preview-body th{background:var(--surface);color:var(--text);font-weight:600}
+.output-area .preview-body hr{border:none;border-top:1px solid var(--border);margin:16px 0}
+.action-bar{display:flex;gap:6px;margin-bottom:8px;justify-content:flex-end}
+.copy-btn{background:var(--surface);border:1px solid var(--border);color:var(--text-dim);padding:5px 10px;border-radius:4px;font-size:11px;cursor:pointer;font-family:var(--font);transition:all .2s}
+.copy-btn:active,.dl-btn:active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.copy-btn.copied{background:var(--green);color:#000;border-color:var(--green)}
+.dl-btn{background:var(--surface);border:1px solid var(--border);color:var(--text-dim);padding:5px 10px;border-radius:4px;font-size:11px;cursor:pointer;font-family:var(--font);transition:all .2s}
+.empty-state{text-align:center;padding:30px 10px;color:var(--text-dim);font-size:14px;line-height:1.8}
+.empty-state svg{width:40px;height:40px;margin-bottom:10px;opacity:0.4}
+.hint{font-size:12px;color:var(--text-dim);margin-top:8px;text-align:center}
+select{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text);font-size:14px;font-family:var(--font);width:100%;outline:none;appearance:none;cursor:pointer}
+select:focus{border-color:var(--accent)}
+@media(min-width:768px){body{padding:24px 32px 60px;max-width:900px;margin:0 auto}.meta-row{grid-template-columns:1fr 1fr 1fr}}
+</style>
+</head>
+<body>
+
+<h1>文章 → <span>AI 就绪</span></h1>
+<div class="sub">粘贴文章 → 转 Markdown → 结构化为 AI 友好格式 · 全部在本地运行</div>
+
+<div class="card">
+  <div class="card-label">文章信息</div>
+  <div class="meta-row">
+    <input type="text" id="metaTitle" placeholder="标题（可选）" autocomplete="off">
+    <input type="text" id="metaSource" placeholder="来源（可选）" autocomplete="off">
+    <input type="text" id="metaDate" placeholder="日期（可选）" autocomplete="off">
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-label">粘贴文章内容</div>
+  <textarea id="inputArea" placeholder="在此粘贴文章内容&#10;支持纯文本或 HTML 格式。&#10;&#10;也可先填标题/来源/日期，方便自动提取元数据。"></textarea>
+  <div class="btn-row">
+    <button class="btn btn-primary" id="processBtn">✧ 处理<span class="hint-key">Ctrl+↵</span></button>
+    <button class="btn btn-secondary" id="clearBtn">清空</button>
+  </div>
+</div>
+
+<div class="card" id="outputCard" style="display:none">
+  <div class="card-label">
+    <span>输出结果</span>
+    <span style="display:flex;gap:6px;align-items:center">
+      <span id="charCount" style="font-size:11px"></span>
+    </span>
+  </div>
+  <div class="tabs">
+    <button class="tab active" data-tab="aifriendly">AI 优化</button>
+    <button class="tab" data-tab="markdown">纯 Markdown</button>
+    <button class="tab" data-tab="preview">预览</button>
+  </div>
+  <div class="action-bar">
+    <button class="dl-btn" id="dlBtn">⬇ 下载 .md</button>
+    <button class="copy-btn" id="copyBtn">📋 复制</button>
+  </div>
+  <div class="output-area">
+    <div id="tabContent"></div>
+  </div>
+</div>
+
+<div class="hint">所有内容仅在你的浏览器中处理，不上传任何服务器。</div>
+
+<script>
+(function(){
+const $ = id => document.getElementById(id);
+const inputArea = $('inputArea');
+const processBtn = $('processBtn');
+const clearBtn = $('clearBtn');
+const outputCard = $('outputCard');
+const tabContent = $('tabContent');
+const copyBtn = $('copyBtn');
+const dlBtn = $('dlBtn');
+const charCount = $('charCount');
+
+let currentOutput = { aifriendly: '', markdown: '', preview: '' };
+let currentTab = 'aifriendly';
+
+function getMeta() {
+  return {
+    title: $('metaTitle').value.trim(),
+    source: $('metaSource').value.trim(),
+    date: $('metaDate').value.trim()
+  };
+}
+
+function detectMetaFromText(text) {
+  const meta = getMeta();
+  if (!meta.title) {
+    const h1Match = text.match(/<h1[^>]*>(.*?)<\/h1>/i);
+    if (h1Match) meta.title = h1Match[1].replace(/<[^>]+>/g,'').trim();
+    else {
+      const lines = text.replace(/<[^>]+>/g,' ').split('\n').filter(l => l.trim());
+      if (lines.length > 0 && lines[0].trim().length < 100) {
+        meta.title = lines[0].trim();
+      }
+    }
+  }
+  if (!meta.date) {
+    const dateMatch = text.match(/(\d{4}[年/-]\d{1,2}[月/-]?\d{0,2}[日]?)/);
+    if (dateMatch) meta.date = dateMatch[1];
+  }
+  return meta;
+}
+
+function htmlToMarkdown(html) {
+  if (!html.trim()) return '';
+  if (/<[a-z][\s\S]*>/i.test(html)) {
+    try {
+      const td = new TurndownService({
+        headingStyle: 'atx',
+        codeBlockStyle: 'fenced',
+        emDelimiter: '*',
+        bulletListMarker: '-',
+        hr: '---'
+      });
+      td.remove('script,style,iframe,nav,footer,aside');
+      return td.turndown(html).trim();
+    } catch(e) {
+      return html.replace(/<[^>]+>/g, '').replace(/\n{3,}/g, '\n\n').trim();
+    }
+  }
+  return html.replace(/\r\n/g, '\n').replace(/\n{4,}/g, '\n\n').trim();
+}
+
+function buildAIFriendly(md, meta) {
+  const lines = md.split('\n');
+  const parts = [];
+
+  parts.push('---');
+  parts.push(`title: "${meta.title || '(未命名)'}"`);
+  parts.push(`source: "${meta.source || '(未知来源)'}"`);
+  parts.push(`date: "${meta.date || '(未标注)'}"`);
+  parts.push(`processed: "${new Date().toISOString().slice(0,10)}"`);
+  parts.push('---');
+  parts.push('');
+
+  const textOnly = md.replace(/\*\*(.*?)\*\*/g, '$1').replace(/\[([^\]]*)\]\([^)]*\)/g, '$1');
+  const paras = textOnly.split('\n\n').filter(p => p.trim() && !p.startsWith('#') && !p.startsWith('---') && !p.startsWith('['));
+  if (paras.length > 0) {
+    const firstPara = paras[0].replace(/\n/g, ' ').trim();
+    if (firstPara.length > 10) {
+      parts.push('> **摘要**：' + firstPara.slice(0, 200) + (firstPara.length > 200 ? '……' : ''));
+      parts.push('');
+    }
+  }
+
+  parts.push('## 正文');
+  parts.push('');
+  parts.push(md);
+  parts.push('');
+
+  const headings = lines.filter(l => /^#{1,4}\s/.test(l));
+  if (headings.length > 0) {
+    parts.push('## 文章结构');
+    parts.push('');
+    for (const h of headings) {
+      const level = h.match(/^#+/)[0].length;
+      const text = h.replace(/^#+\s*/, '');
+      parts.push('  '.repeat(level-1) + '- **' + text + '**');
+    }
+    parts.push('');
+  }
+
+  parts.push('## AI 分析笔记');
+  parts.push('');
+  parts.push('- 本文核心主题：' + (meta.title || '待识别'));
+  parts.push('- 来源可信度：' + (meta.source ? '已标注（' + meta.source + '）' : '未标注来源'));
+  parts.push('- 时间上下文：' + (meta.date || '未标注'));
+  parts.push('- 全文长度：' + md.length + ' 字符');
+  parts.push('');
+  parts.push('> 以上为结构化重排版。AI 使用时建议将全文作为上下文输入，');
+  parts.push('> 结合元数据和文章结构进行理解和分析。');
+
+  return parts.join('\n');
+}
+
+function process() {
+  const raw = inputArea.value.trim();
+  if (!raw) return;
+
+  processBtn.disabled = true;
+  processBtn.textContent = '处理中…';
+
+  setTimeout(() => {
+    try {
+      const meta = detectMetaFromText(raw);
+      if (meta.title && !$('metaTitle').value) $('metaTitle').value = meta.title;
+      if (meta.date && !$('metaDate').value) $('metaDate').value = meta.date;
+
+      const finalMeta = getMeta();
+      const md = htmlToMarkdown(raw);
+      const aifriendly = buildAIFriendly(md, finalMeta);
+
+      // Preview via marked
+      let preview = '';
+      try {
+        preview = marked.parse(md);
+      } catch(e) {
+        preview = '<div class="empty-state"><p>预览渲染失败，请切换「纯 Markdown」视图</p></div>';
+      }
+
+      currentOutput = { aifriendly, markdown: md, preview };
+      currentTab = 'aifriendly';
+      showTab('aifriendly');
+      outputCard.style.display = 'block';
+      charCount.textContent = md.length + ' 字 | ' + (md.split('\n').length) + ' 行';
+
+    } catch(e) {
+      showError('处理出错：' + e.message);
+    } finally {
+      processBtn.disabled = false;
+      processBtn.textContent = '✧ 处理';
+    }
+  }, 50);
+}
+
+function showTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+
+  let content = '';
+  if (tab === 'aifriendly') content = currentOutput.aifriendly;
+  else if (tab === 'markdown') content = currentOutput.markdown;
+  else if (tab === 'preview') content = currentOutput.preview;
+
+  if (tab === 'preview') {
+    tabContent.innerHTML = '<div class="preview-body">' + (content || '<div class="empty-state"><p>暂无预览</p></div>') + '</div>';
+  } else {
+    tabContent.innerHTML = '<pre>' + escapeHtml(content || '') + '</pre>';
+  }
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function showError(msg) {
+  outputCard.style.display = 'block';
+  tabContent.innerHTML = '<div class="empty-state"><p style="color:#f87171">⚠️ ' + msg + '</p></div>';
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+}
+
+function getCurrentText() {
+  if (currentTab === 'preview') return currentOutput.markdown;
+  else if (currentTab === 'aifriendly') return currentOutput.aifriendly;
+  return currentOutput.markdown;
+}
+
+function copyContent() {
+  const text = getCurrentText();
+  if (!text) return;
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => {
+      copyBtn.textContent = '✓ 已复制';
+      copyBtn.classList.add('copied');
+      setTimeout(() => {
+        copyBtn.textContent = '📋 复制';
+        copyBtn.classList.remove('copied');
+      }, 1500);
+    }).catch(() => fallbackCopy(text));
+  } else {
+    fallbackCopy(text);
+  }
+}
+
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand('copy');
+    copyBtn.textContent = '✓ 已复制';
+    copyBtn.classList.add('copied');
+    setTimeout(() => {
+      copyBtn.textContent = '📋 复制';
+      copyBtn.classList.remove('copied');
+    }, 1500);
+  } catch(e) {}
+  document.body.removeChild(ta);
+}
+
+function downloadMd() {
+  const text = getCurrentText();
+  if (!text) return;
+
+  const meta = getMeta();
+  const filename = (meta.title || 'article')
+    .replace(/[^\w\u4e00-\u9fff]/g, '_')
+    .slice(0, 40) + '.md';
+
+  const blob = new Blob([text], { type: 'text/markdown;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function clearAll() {
+  inputArea.value = '';
+  $('metaTitle').value = '';
+  $('metaSource').value = '';
+  $('metaDate').value = '';
+  outputCard.style.display = 'none';
+  currentOutput = { aifriendly: '', markdown: '', preview: '' };
+  inputArea.focus();
+}
+
+// ── Events ──
+processBtn.addEventListener('click', process);
+clearBtn.addEventListener('click', clearAll);
+copyBtn.addEventListener('click', copyContent);
+dlBtn.addEventListener('click', downloadMd);
+
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => showTab(tab.dataset.tab));
+});
+
+inputArea.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+    e.preventDefault();
+    process();
+  }
+});
+
+inputArea.addEventListener('paste', () => {
+  setTimeout(() => {
+    if (inputArea.value.trim()) {
+      const meta = detectMetaFromText(inputArea.value);
+      if (meta.title && !$('metaTitle').value) $('metaTitle').value = meta.title;
+      if (meta.date && !$('metaDate').value) $('metaDate').value = meta.date;
+    }
+  }, 100);
+});
+
+console.log('📄 文章→AI工具已加载');
+})();
+</script>
+</body>
+</html>
