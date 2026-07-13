@@ -3,88 +3,92 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-<title>文章 → AI Markdown</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/turndown/7.2.0/turndown.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/15.0.6/marked.min.js"></script>
+<title>文章 → AI 就绪 · 结构化工具</title>
+<!-- jsdelivr 国内比 cdnjs 快 -->
+<script src="https://cdn.jsdelivr.net/npm/turndown@7.2.0/dist/turndown.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-:root{--bg:#0a0a0f;--surface:#12121a;--card:#1a1a26;--border:#2a2a3a;--text:#d0d0dd;--text-dim:#707088;--accent:#7c5cfc;--accent-dim:#5a3ec8;--green:#4ade80;--radius:10px;--font:-apple-system,'Microsoft YaHei','PingFang SC',sans-serif}
+:root{--bg:#0a0a0f;--surface:#12121a;--card:#1a1a26;--border:#2a2a3a;--text:#d0d0dd;--text-dim:#707088;--accent:#7c5cfc;--accent-dim:#5a3ec8;--green:#4ade80;--warn:#f59e0b;--radius:10px;--font:-apple-system,'Microsoft YaHei','PingFang SC',sans-serif}
 body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;padding:16px 12px 40px}
-h1{font-size:20px;font-weight:700;margin-bottom:6px;letter-spacing:0.5px}
+header{margin-bottom:20px}
+h1{font-size:22px;font-weight:700;margin-bottom:4px;letter-spacing:0.5px}
 h1 span{color:var(--accent)}
-.sub{font-size:13px;color:var(--text-dim);margin-bottom:20px}
-.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:14px}
-.card-label{font-size:12px;color:var(--text-dim);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
-.meta-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
-.meta-row input,.meta-full input{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text);font-size:14px;font-family:var(--font);width:100%;outline:none;transition:border .2s}
-.meta-row input:focus,.meta-full input:focus{border-color:var(--accent)}
-.meta-full{margin-bottom:8px}
-textarea{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:10px;color:var(--text);font-size:14px;font-family:var(--font);line-height:1.6;resize:vertical;min-height:120px;max-height:50vh;outline:none;transition:border .2s}
+.sub{font-size:13px;color:var(--text-dim);margin-bottom:4px}
+.sub small{opacity:0.6}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:14px}
+.card-label{font-size:12px;color:var(--text-dim);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.meta-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.meta-row input{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text);font-size:14px;font-family:var(--font);width:100%;outline:none;transition:border .2s}
+.meta-row input:focus{border-color:var(--accent)}
+textarea{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:10px;color:var(--text);font-size:14px;font-family:var(--font);line-height:1.7;resize:vertical;min-height:140px;max-height:50vh;outline:none;transition:border .2s}
 textarea:focus{border-color:var(--accent)}
 textarea::placeholder{color:var(--text-dim);font-size:13px}
-.btn-row{display:flex;gap:8px;margin:12px 0}
-.btn{flex:1;padding:10px;border:none;border-radius:6px;font-size:14px;font-family:var(--font);font-weight:600;cursor:pointer;transition:all .2s;text-align:center}
-.btn-primary{background:var(--accent);color:#fff;position:relative}
+.btn-row{display:flex;gap:8px;margin:12px 0 0}
+.btn{flex:1;padding:11px;border:none;border-radius:6px;font-size:14px;font-family:var(--font);font-weight:600;cursor:pointer;transition:all .2s;text-align:center;position:relative}
+.btn-primary{background:var(--accent);color:#fff}
 .btn-primary:active{background:var(--accent-dim);transform:scale(0.98)}
 .btn-primary:disabled{background:var(--border);color:var(--text-dim);cursor:not-allowed}
 .btn-secondary{background:var(--surface);color:var(--text);border:1px solid var(--border)}
-.btn-secondary:active{background:var(--border)}
-.btn-sm{background:var(--surface);color:var(--text-dim);border:1px solid var(--border);border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer;font-family:var(--font);transition:all .2s}
-.btn-sm:active{background:var(--border);color:var(--text)}
-.hint-key{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:11px;opacity:0.5;font-weight:400;pointer-events:none}
-.tabs{display:flex;gap:4px;margin-bottom:10px;background:var(--surface);border-radius:6px;padding:3px}
-.tab{flex:1;padding:7px;text-align:center;font-size:13px;border:none;background:transparent;color:var(--text-dim);border-radius:4px;cursor:pointer;font-family:var(--font);transition:all .2s}
+.hint-key{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:11px;opacity:0.4;font-weight:400;pointer-events:none}
+
+/* 输出区 */
+.tabs{display:flex;gap:4px;margin-bottom:12px;background:var(--surface);border-radius:6px;padding:3px}
+.tab{flex:1;padding:8px;text-align:center;font-size:13px;border:none;background:transparent;color:var(--text-dim);border-radius:4px;cursor:pointer;font-family:var(--font);transition:all .2s}
 .tab.active{background:var(--accent);color:#fff}
-.output-area{position:relative}
-.output-area pre{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:12px;font-size:13px;line-height:1.6;overflow-x:auto;white-space:pre-wrap;word-break:break-word;color:var(--text);max-height:60vh;overflow-y:auto;font-family:'Cascadia Code','Fira Code','Consolas',monospace}
-.output-area .preview-body{padding:12px;line-height:1.8;font-size:14px}
-.output-area .preview-body h1{font-size:22px;margin:20px 0 10px}
-.output-area .preview-body h2{font-size:18px;margin:18px 0 8px;color:var(--accent)}
-.output-area .preview-body h3{font-size:16px;margin:14px 0 6px}
-.output-area .preview-body p{margin:8px 0}
-.output-area .preview-body blockquote{border-left:3px solid var(--accent);padding:6px 12px;margin:8px 0;color:var(--text-dim);background:var(--surface);border-radius:0 4px 4px 0}
-.output-area .preview-body code{background:var(--surface);padding:1px 5px;border-radius:3px;font-size:13px}
-.output-area .preview-body pre{background:var(--surface);border:1px solid var(--border);padding:12px;border-radius:6px;overflow-x:auto;margin:10px 0}
-.output-area .preview-body pre code{background:none;padding:0;border-radius:0}
-.output-area .preview-body ul,.output-area .preview-body ol{padding-left:20px;margin:6px 0}
-.output-area .preview-body li{margin:3px 0}
-.output-area .preview-body a{color:var(--accent);text-decoration:none}
-.output-area .preview-body a:hover{text-decoration:underline}
-.output-area .preview-body img{max-width:100%;border-radius:4px;margin:8px 0}
-.output-area .preview-body table{border-collapse:collapse;width:100%;margin:10px 0;font-size:13px}
-.output-area .preview-body th,.output-area .preview-body td{border:1px solid var(--border);padding:6px 10px;text-align:left}
-.output-area .preview-body th{background:var(--surface);color:var(--text);font-weight:600}
-.output-area .preview-body hr{border:none;border-top:1px solid var(--border);margin:16px 0}
-.action-bar{display:flex;gap:6px;margin-bottom:8px;justify-content:flex-end}
-.copy-btn{background:var(--surface);border:1px solid var(--border);color:var(--text-dim);padding:5px 10px;border-radius:4px;font-size:11px;cursor:pointer;font-family:var(--font);transition:all .2s}
+.output-area pre{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:14px;font-size:13px;line-height:1.7;overflow-x:auto;white-space:pre-wrap;word-break:break-word;color:var(--text);max-height:60vh;overflow-y:auto;font-family:'Cascadia Code','Fira Code','Consolas',monospace}
+.preview-body{padding:4px 0;line-height:1.9;font-size:14px}
+.preview-body h1{font-size:20px;margin:20px 0 10px}
+.preview-body h2{font-size:17px;margin:16px 0 8px;color:var(--accent)}
+.preview-body h3{font-size:15px;margin:12px 0 6px}
+.preview-body p{margin:8px 0}
+.preview-body blockquote{border-left:3px solid var(--accent);padding:6px 12px;margin:8px 0;color:var(--text-dim);background:var(--surface);border-radius:0 4px 4px 0}
+.preview-body code{background:var(--surface);padding:1px 5px;border-radius:3px;font-size:13px}
+.preview-body pre{background:var(--surface);border:1px solid var(--border);padding:12px;border-radius:6px;overflow-x:auto;margin:10px 0}
+.preview-body pre code{background:none;padding:0}
+.preview-body ul,.preview-body ol{padding-left:20px;margin:6px 0}
+.preview-body li{margin:3px 0}
+.preview-body a{color:var(--accent);text-decoration:none}
+.preview-body img{max-width:100%;border-radius:4px;margin:8px 0}
+.preview-body table{border-collapse:collapse;width:100%;margin:10px 0;font-size:13px}
+.preview-body th,.preview-body td{border:1px solid var(--border);padding:6px 10px;text-align:left}
+.preview-body th{background:var(--surface);font-weight:600}
+.preview-body hr{border:none;border-top:1px solid var(--border);margin:16px 0}
+
+.action-bar{display:flex;gap:6px;margin-bottom:10px;justify-content:flex-end}
+.copy-btn,.dl-btn{background:var(--surface);border:1px solid var(--border);color:var(--text-dim);padding:5px 12px;border-radius:4px;font-size:11px;cursor:pointer;font-family:var(--font);transition:all .2s}
 .copy-btn:active,.dl-btn:active{background:var(--accent);color:#fff;border-color:var(--accent)}
 .copy-btn.copied{background:var(--green);color:#000;border-color:var(--green)}
-.dl-btn{background:var(--surface);border:1px solid var(--border);color:var(--text-dim);padding:5px 10px;border-radius:4px;font-size:11px;cursor:pointer;font-family:var(--font);transition:all .2s}
-.empty-state{text-align:center;padding:30px 10px;color:var(--text-dim);font-size:14px;line-height:1.8}
-.empty-state svg{width:40px;height:40px;margin-bottom:10px;opacity:0.4}
-.hint{font-size:12px;color:var(--text-dim);margin-top:8px;text-align:center}
-select{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text);font-size:14px;font-family:var(--font);width:100%;outline:none;appearance:none;cursor:pointer}
-select:focus{border-color:var(--accent)}
-@media(min-width:768px){body{padding:24px 32px 60px;max-width:900px;margin:0 auto}.meta-row{grid-template-columns:1fr 1fr 1fr}}
+
+.stats-row{display:flex;gap:16px;margin:12px 0;flex-wrap:wrap}
+.stat{font-size:12px;color:var(--text-dim)}
+.stat strong{color:var(--text);font-size:14px}
+.stat.warn strong{color:var(--warn)}
+
+.hint{font-size:12px;color:var(--text-dim);margin-top:16px;text-align:center;line-height:1.8}
+@media(min-width:768px){body{padding:28px 32px 60px;max-width:900px;margin:0 auto}.meta-row{grid-template-columns:1fr 1fr 1fr}}
 </style>
 </head>
 <body>
 
-<h1>文章 → <span>AI 就绪</span></h1>
-<div class="sub">粘贴文章 → 转 Markdown → 结构化为 AI 友好格式 · 全部在本地运行</div>
+<header>
+  <h1>文章 → <span>AI 就绪</span></h1>
+  <div class="sub">粘贴文章 · 智能清洗 · 提取关键信息 · 输出为 AI 可直接使用的结构化文档</div>
+  <div class="sub"><small>全部本地运行 · 不上传任何数据</small></div>
+</header>
 
 <div class="card">
-  <div class="card-label">文章信息</div>
+  <div class="card-label">文章信息 <span style="font-size:11px">粘贴后自动提取，也可手动填写</span></div>
   <div class="meta-row">
-    <input type="text" id="metaTitle" placeholder="标题（可选）" autocomplete="off">
-    <input type="text" id="metaSource" placeholder="来源（可选）" autocomplete="off">
-    <input type="text" id="metaDate" placeholder="日期（可选）" autocomplete="off">
+    <input type="text" id="metaTitle" placeholder="标题" autocomplete="off">
+    <input type="text" id="metaSource" placeholder="来源" autocomplete="off">
+    <input type="text" id="metaDate" placeholder="日期" autocomplete="off">
   </div>
 </div>
 
 <div class="card">
   <div class="card-label">粘贴文章内容</div>
-  <textarea id="inputArea" placeholder="在此粘贴文章内容&#10;支持纯文本或 HTML 格式。&#10;&#10;也可先填标题/来源/日期，方便自动提取元数据。"></textarea>
+  <textarea id="inputArea" placeholder="在此粘贴文章&#10;支持纯文本或 HTML 格式（从网页复制自动保留格式）&#10;&#10;会自动：清洗噪音 · 提取摘要 · 识别关键数据 · 分析结构"></textarea>
   <div class="btn-row">
     <button class="btn btn-primary" id="processBtn">✧ 处理<span class="hint-key">Ctrl+↵</span></button>
     <button class="btn btn-secondary" id="clearBtn">清空</button>
@@ -94,307 +98,389 @@ select:focus{border-color:var(--accent)}
 <div class="card" id="outputCard" style="display:none">
   <div class="card-label">
     <span>输出结果</span>
-    <span style="display:flex;gap:6px;align-items:center">
-      <span id="charCount" style="font-size:11px"></span>
-    </span>
+    <span id="charCount" style="font-size:11px"></span>
   </div>
+  <div class="stats-row" id="statsRow"></div>
   <div class="tabs">
-    <button class="tab active" data-tab="aifriendly">AI 优化</button>
+    <button class="tab active" data-tab="aifriendly">AI 优化版</button>
     <button class="tab" data-tab="markdown">纯 Markdown</button>
-    <button class="tab" data-tab="preview">预览</button>
+    <button class="tab" data-tab="preview">渲染预览</button>
   </div>
   <div class="action-bar">
     <button class="dl-btn" id="dlBtn">⬇ 下载 .md</button>
     <button class="copy-btn" id="copyBtn">📋 复制</button>
   </div>
-  <div class="output-area">
-    <div id="tabContent"></div>
-  </div>
+  <div class="output-area"><div id="tabContent"></div></div>
 </div>
 
-<div class="hint">所有内容仅在你的浏览器中处理，不上传任何服务器。</div>
+<div class="hint">
+  所有处理仅在你的浏览器中完成，无任何数据上传。<br>
+  清洗后的结构化文档可直接复制粘贴给 ChatGPT、Claude、DeepSeek 等 AI 使用。
+</div>
 
 <script>
 (function(){
-const $ = id => document.getElementById(id);
-const inputArea = $('inputArea');
-const processBtn = $('processBtn');
-const clearBtn = $('clearBtn');
-const outputCard = $('outputCard');
-const tabContent = $('tabContent');
-const copyBtn = $('copyBtn');
-const dlBtn = $('dlBtn');
-const charCount = $('charCount');
+const $=id=>document.getElementById(id);
+const inputArea=$('inputArea'),processBtn=$('processBtn'),outputCard=$('outputCard');
+const tabContent=$('tabContent'),copyBtn=$('copyBtn'),dlBtn=$('dlBtn'),charCount=$('charCount'),statsRow=$('statsRow');
 
-let currentOutput = { aifriendly: '', markdown: '', preview: '' };
-let currentTab = 'aifriendly';
+let currentOutput={aifriendly:'',markdown:'',preview:''},currentTab='aifriendly';
 
-function getMeta() {
-  return {
-    title: $('metaTitle').value.trim(),
-    source: $('metaSource').value.trim(),
-    date: $('metaDate').value.trim()
-  };
+function getMeta(){
+  return {title:$('metaTitle').value.trim(),source:$('metaSource').value.trim(),date:$('metaDate').value.trim()};
 }
 
-function detectMetaFromText(text) {
-  const meta = getMeta();
-  if (!meta.title) {
-    const h1Match = text.match(/<h1[^>]*>(.*?)<\/h1>/i);
-    if (h1Match) meta.title = h1Match[1].replace(/<[^>]+>/g,'').trim();
-    else {
-      const lines = text.replace(/<[^>]+>/g,' ').split('\n').filter(l => l.trim());
-      if (lines.length > 0 && lines[0].trim().length < 100) {
-        meta.title = lines[0].trim();
-      }
+// ═══ 噪声清洗 ═══
+function cleanNoise(text){
+  // 去除常见网页噪声
+  const patterns=[
+    /<script[\s\S]*?<\/script>/gi,
+    /<style[\s\S]*?<\/style>/gi,
+    /<nav[\s\S]*?<\/nav>/gi,
+    /<footer[\s\S]*?<\/footer>/gi,
+    /<aside[\s\S]*?<\/aside>/gi,
+    /<iframe[\s\S]*?<\/iframe>/gi,
+    /<noscript[\s\S]*?<\/noscript>/gi,
+    // 中文噪声模块
+    /(?:广告|推广|赞助).*?(?:\n|$)/gi,
+    /(?:推荐阅读|相关推荐|热门文章|猜你喜欢|阅读更多)[\s\S]*?(?=\n\n|\n#|$)/gi,
+    /(?:免责声明|版权声明|转载请联系)[\s\S]*?(?=\n\n|\n#|$)/gi,
+    /(?:关注我们|扫码关注|订阅).*?(?:\n|$)/gi,
+    /(?:分享到|分享至|一键分享).*?(?:\n|$)/gi,
+    /(?:本文(?:来源|转自|首发).*?(?:\n|$))/gi,
+    /(?:编辑[：:].*?(?:\n|$))/gi,
+    /(?:责任编辑[：:].*?(?:\n|$))/gi,
+    /(?:举报|反馈|投诉).*?(?:\n|$)/gi,
+    /<img[^>]*qr[^>]*>/gi,
+    /<img[^>]*banner[^>]*>/gi,
+    /\n{4,}/g, // 多余空行
+  ];
+  for(const p of patterns){text=text.replace(p,'');}
+  // 清理空段落标记
+  text=text.replace(/\n{3,}/g,'\n\n');
+  return text.trim();
+}
+
+// ═══ HTML → Markdown ═══
+function htmlToMarkdown(raw){
+  if(!raw.trim())return'';
+  const cleaned=cleanNoise(raw);
+  if(/<[a-z][\s\S]*>/i.test(cleaned)){
+    try{
+      const td=new TurndownService({headingStyle:'atx',codeBlockStyle:'fenced',emDelimiter:'*',bulletListMarker:'-'});
+      td.remove('script,style,iframe,nav,footer,aside,img[src*="qrcode"],img[src*="banner"],img[src*="ad"]');
+      // 自定义规则：保留更多语义
+      td.addRule('stripEmptyLinks',{filter:function(node){return node.nodeName==='A'&&!node.textContent.trim()},replacement:function(){return'';}});
+      return td.turndown(cleaned).replace(/\n{4,}/g,'\n\n').trim();
+    }catch(e){return cleaned.replace(/<[^>]+>/g,'').replace(/\n{3,}/g,'\n\n').trim();}
+  }
+  return cleaned.replace(/\r\n/g,'\n').replace(/\n{4,}/g,'\n\n').trim();
+}
+
+// ═══ 提取式摘要（基于句子评分） ═══
+function extractiveSummary(md){
+  const plain=md.replace(/[#*>`\[\]()|_~]/g,'').replace(/\n\n/g,'\n').replace(/\n/g,' ');
+  // 按常见标点分句
+  const sentences=plain.split(/(?<=[。！？；\n\.!\?;])\s*/).filter(s=>s.trim().length>10);
+  if(sentences.length<=3)return sentences.join('');
+  
+  const scored=sentences.map((s,i)=>{
+    let score=0;
+    // 位置权重：前 30% 和最后 10% 权重高
+    const pos=i/sentences.length;
+    if(pos<0.3)score+=3;
+    else if(pos>0.85)score+=2;
+    else score+=1;
+    // 长度权重：15-80 字为佳
+    const len=s.length;
+    if(len>15&&len<80)score+=2;
+    else if(len>=80)score+=1;
+    // 关键信号词
+    const signals=/核心|关键|重要|结论|因此|总之|所以|表明|证明|发现|提出|认为|指出|强调|数据显示|结果表明/;
+    if(signals.test(s))score+=3;
+    // 数据信号（包含数字的句子更有信息量）
+    if(/\d+[万亿千百%倍]/.test(s))score+=2;
+    return{text:s.trim(),score,idx:i};
+  }).sort((a,b)=>b.score-a.score);
+  
+  // 取 top 3-5 句，按原文顺序排列
+  const topCount=Math.min(Math.max(3,Math.floor(sentences.length*0.3)),5);
+  const top=scored.slice(0,topCount).sort((a,b)=>a.idx-b.idx);
+  return top.map(s=>s.text).join('；');
+}
+
+// ═══ 关键数据提取 ═══
+function extractKeyData(md){
+  const plain=md.replace(/[#*>`\[\]]/g,'');
+  const found=[];
+  // 数字 + 单位
+  const numPatterns=[
+    [/(\d+(?:\.\d+)?)\s*(?:万|亿|千|百|万亿)/g,'数量'],
+    [/(\d+(?:\.\d+)?)\s*%/g,'百分比'],
+    [/(\d{4})年(\d{1,2})月(\d{1,2})日/g,'日期'],
+    [/(?:约|大约|大概|估计)\s*\d+[^\n。！？]{0,20}/g,'约数'],
+  ];
+  for(const [pat,label] of numPatterns){
+    const matches=plain.match(pat);
+    if(matches){for(const m of matches.slice(0,3))found.push(`${label}: ${m}`);}
+  }
+  // 引号内引用
+  const quotes=plain.match(/[「『""\u201c\u201d]([^」』""\u201c\u201d]{15,80})[」』""\u201c\u201d]/g);
+  if(quotes){for(const q of quotes.slice(0,2))found.push(`引用: ${q}`);}
+  return [...new Set(found)].slice(0,8);
+}
+
+// ═══ 文章结构分析 ═══
+function analyzeStructure(md){
+  const lines=md.split('\n');
+  const sections=[];
+  let currentSection=null;
+  let paraCount=0;
+
+  for(const line of lines){
+    const hMatch=line.match(/^(#{1,4})\s+(.+)/);
+    if(hMatch){
+      if(currentSection)currentSection.paras=paraCount;
+      currentSection={level:hMatch[1].length,title:hMatch[2].trim(),paras:0};
+      sections.push(currentSection);
+      paraCount=0;
+    }else if(line.trim()&&currentSection){
+      if(!line.startsWith('-')&&!line.startsWith('>')&&!line.startsWith('|'))paraCount++;
     }
   }
-  if (!meta.date) {
-    const dateMatch = text.match(/(\d{4}[年/-]\d{1,2}[月/-]?\d{0,2}[日]?)/);
-    if (dateMatch) meta.date = dateMatch[1];
-  }
-  return meta;
+  if(currentSection)currentSection.paras=paraCount;
+
+  return sections;
 }
 
-function htmlToMarkdown(html) {
-  if (!html.trim()) return '';
-  if (/<[a-z][\s\S]*>/i.test(html)) {
-    try {
-      const td = new TurndownService({
-        headingStyle: 'atx',
-        codeBlockStyle: 'fenced',
-        emDelimiter: '*',
-        bulletListMarker: '-',
-        hr: '---'
-      });
-      td.remove('script,style,iframe,nav,footer,aside');
-      return td.turndown(html).trim();
-    } catch(e) {
-      return html.replace(/<[^>]+>/g, '').replace(/\n{3,}/g, '\n\n').trim();
-    }
-  }
-  return html.replace(/\r\n/g, '\n').replace(/\n{4,}/g, '\n\n').trim();
-}
+// ═══ 构建 AI 友好输出版 ═══
+function buildAIFriendly(md,meta){
+  const parts=[];
+  const plainLen=md.replace(/[#*>`\[\]()|_~\- ]/g,'').length;
 
-function buildAIFriendly(md, meta) {
-  const lines = md.split('\n');
-  const parts = [];
-
+  // YAML 元数据
   parts.push('---');
-  parts.push(`title: "${meta.title || '(未命名)'}"`);
-  parts.push(`source: "${meta.source || '(未知来源)'}"`);
-  parts.push(`date: "${meta.date || '(未标注)'}"`);
+  parts.push(`title: "${meta.title||'(未提取)'}"`);
+  parts.push(`source: "${meta.source||'(未标注)'}"`);
+  parts.push(`date: "${meta.date||'(未标注)'}"`);
   parts.push(`processed: "${new Date().toISOString().slice(0,10)}"`);
+  parts.push(`chars: ${plainLen}`);
   parts.push('---');
   parts.push('');
 
-  const textOnly = md.replace(/\*\*(.*?)\*\*/g, '$1').replace(/\[([^\]]*)\]\([^)]*\)/g, '$1');
-  const paras = textOnly.split('\n\n').filter(p => p.trim() && !p.startsWith('#') && !p.startsWith('---') && !p.startsWith('['));
-  if (paras.length > 0) {
-    const firstPara = paras[0].replace(/\n/g, ' ').trim();
-    if (firstPara.length > 10) {
-      parts.push('> **摘要**：' + firstPara.slice(0, 200) + (firstPara.length > 200 ? '……' : ''));
-      parts.push('');
-    }
+  // 摘要（真正的提取式摘要）
+  const summary=extractiveSummary(md);
+  if(summary){
+    parts.push('## 摘要');
+    parts.push('');
+    parts.push('> ' + summary);
+    parts.push('');
   }
 
+  // 关键数据
+  const keyData=extractKeyData(md);
+  if(keyData.length>0){
+    parts.push('## 关键信息');
+    parts.push('');
+    for(const d of keyData)parts.push(`- ${d}`);
+    parts.push('');
+  }
+
+  // 结构概览
+  const structure=analyzeStructure(md);
+  if(structure.length>0){
+    parts.push('## 文章结构');
+    parts.push('');
+    let totalParas=0;
+    for(const s of structure){
+      const indent='  '.repeat(s.level-1);
+      parts.push(`${indent}- **${s.title}** (${s.paras}段)`);
+      totalParas+=s.paras;
+    }
+    parts.push('');
+    parts.push(`> 共 ${structure.length} 个章节，${totalParas} 个段落`);
+    parts.push('');
+  }
+
+  // 正文
   parts.push('## 正文');
   parts.push('');
   parts.push(md);
   parts.push('');
 
-  const headings = lines.filter(l => /^#{1,4}\s/.test(l));
-  if (headings.length > 0) {
-    parts.push('## 文章结构');
-    parts.push('');
-    for (const h of headings) {
-      const level = h.match(/^#+/)[0].length;
-      const text = h.replace(/^#+\s*/, '');
-      parts.push('  '.repeat(level-1) + '- **' + text + '**');
-    }
-    parts.push('');
-  }
-
-  parts.push('## AI 分析笔记');
+  // 使用建议
+  parts.push('## 使用建议');
   parts.push('');
-  parts.push('- 本文核心主题：' + (meta.title || '待识别'));
-  parts.push('- 来源可信度：' + (meta.source ? '已标注（' + meta.source + '）' : '未标注来源'));
-  parts.push('- 时间上下文：' + (meta.date || '未标注'));
-  parts.push('- 全文长度：' + md.length + ' 字符');
-  parts.push('');
-  parts.push('> 以上为结构化重排版。AI 使用时建议将全文作为上下文输入，');
-  parts.push('> 结合元数据和文章结构进行理解和分析。');
+  parts.push('- 将以上内容整体作为 AI 对话的上下文输入');
+  parts.push('- 摘要和关键信息可帮助 AI 快速定位核心内容');
+  parts.push('- 文章结构可作为追问导航（"请展开分析第3节"）');
+  parts.push('- 若文章过长超出上下文窗口，优先保留摘要 + 关键信息 + 目标章节正文');
 
   return parts.join('\n');
 }
 
-function process() {
-  const raw = inputArea.value.trim();
-  if (!raw) return;
-
-  processBtn.disabled = true;
-  processBtn.textContent = '处理中…';
-
-  setTimeout(() => {
-    try {
-      const meta = detectMetaFromText(raw);
-      if (meta.title && !$('metaTitle').value) $('metaTitle').value = meta.title;
-      if (meta.date && !$('metaDate').value) $('metaDate').value = meta.date;
-
-      const finalMeta = getMeta();
-      const md = htmlToMarkdown(raw);
-      const aifriendly = buildAIFriendly(md, finalMeta);
-
-      // Preview via marked
-      let preview = '';
-      try {
-        preview = marked.parse(md);
-      } catch(e) {
-        preview = '<div class="empty-state"><p>预览渲染失败，请切换「纯 Markdown」视图</p></div>';
-      }
-
-      currentOutput = { aifriendly, markdown: md, preview };
-      currentTab = 'aifriendly';
-      showTab('aifriendly');
-      outputCard.style.display = 'block';
-      charCount.textContent = md.length + ' 字 | ' + (md.split('\n').length) + ' 行';
-
-    } catch(e) {
-      showError('处理出错：' + e.message);
-    } finally {
-      processBtn.disabled = false;
-      processBtn.textContent = '✧ 处理';
-    }
-  }, 50);
+// ═══ 简易 Markdown 渲染（不依赖外部库） ═══
+function simpleRender(md){
+  let html=md;
+  // 代码块
+  html=html.replace(/```(\w*)\n([\s\S]*?)```/g,'<pre><code>$2</code></pre>');
+  // 行内代码
+  html=html.replace(/`([^`]+)`/g,'<code>$1</code>');
+  // 标题
+  html=html.replace(/^#### (.+)$/gm,'<h4>$1</h4>');
+  html=html.replace(/^### (.+)$/gm,'<h3>$1</h3>');
+  html=html.replace(/^## (.+)$/gm,'<h2>$1</h2>');
+  html=html.replace(/^# (.+)$/gm,'<h1>$1</h1>');
+  // 粗体/斜体
+  html=html.replace(/\*\*\*(.+?)\*\*\*/g,'<strong><em>$1</em></strong>');
+  html=html.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+  html=html.replace(/\*(.+?)\*/g,'<em>$1</em>');
+  // 引用
+  html=html.replace(/^> (.+)$/gm,'<blockquote>$1</blockquote>');
+  // 水平线
+  html=html.replace(/^---$/gm,'<hr>');
+  // 无序列表
+  html=html.replace(/^- (.+)$/gm,'<li>$1</li>');
+  html=html.replace(/(<li>[\s\S]*?<\/li>)/g,'<ul>$1</ul>');
+  // 链接
+  html=html.replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2" target="_blank">$1</a>');
+  // 段落
+  html=html.replace(/\n\n/g,'</p><p>');
+  html='<p>'+html+'</p>';
+  // 清理空标签
+  html=html.replace(/<p>\s*<\/p>/g,'');
+  html=html.replace(/<li>\s*<\/li>/g,'');
+  return html;
 }
 
-function showTab(tab) {
-  currentTab = tab;
-  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+// ═══ 主处理 ═══
+function process(){
+  const raw=inputArea.value.trim();
+  if(!raw)return;
 
-  let content = '';
-  if (tab === 'aifriendly') content = currentOutput.aifriendly;
-  else if (tab === 'markdown') content = currentOutput.markdown;
-  else if (tab === 'preview') content = currentOutput.preview;
+  processBtn.disabled=true;
+  processBtn.textContent='处理中…';
 
-  if (tab === 'preview') {
-    tabContent.innerHTML = '<div class="preview-body">' + (content || '<div class="empty-state"><p>暂无预览</p></div>') + '</div>';
-  } else {
-    tabContent.innerHTML = '<pre>' + escapeHtml(content || '') + '</pre>';
+  setTimeout(()=>{
+    try{
+      // 自动提取元数据
+      let meta=getMeta();
+      const h1Match=raw.match(/<h1[^>]*>(.*?)<\/h1>/i);
+      if(!meta.title&&h1Match)meta.title=h1Match[1].replace(/<[^>]+>/g,'').trim();
+      if(!meta.title){
+        const firstLine=raw.replace(/<[^>]+>/g,' ').split('\n').filter(l=>l.trim().length>5&&l.trim().length<100)[0];
+        if(firstLine)meta.title=firstLine.trim();
+      }
+      if(!meta.date){
+        const dm=raw.match(/(\d{4}[年/-]\d{1,2}[月/-]?\d{0,2}[日]?)/);
+        if(dm)meta.date=dm[1];
+      }
+
+      // 回填 UI
+      if(meta.title&&!$('metaTitle').value)$('metaTitle').value=meta.title;
+      if(meta.date&&!$('metaDate').value)$('metaDate').value=meta.date;
+      meta=getMeta();
+
+      // 转换
+      const md=htmlToMarkdown(raw);
+      const aifriendly=buildAIFriendly(md,meta);
+      const preview=simpleRender(md);
+
+      currentOutput={aifriendly,markdown:md,preview};
+      currentTab='aifriendly';
+      showTab('aifriendly');
+      outputCard.style.display='block';
+
+      // 统计
+      const plainLen=md.replace(/[#*>`\[\]()|_~\-\s]/g,'').length;
+      const paraCount=md.split('\n\n').filter(p=>p.trim()).length;
+      const headingCount=(md.match(/^#{1,4}\s/gm)||[]).length;
+      const keyData=extractKeyData(md);
+      const tokenEst=Math.round(plainLen*0.6);
+
+      charCount.textContent=`${plainLen} 有效字 · ${paraCount} 段 · ${headingCount} 章节`;
+      statsRow.innerHTML=`
+        <div class="stat">有效字数 <strong>${plainLen}</strong></div>
+        <div class="stat">估算 token <strong>~${tokenEst}</strong></div>
+        <div class="stat">关键数据 <strong>${keyData.length}</strong> 条</div>
+        <div class="stat${tokenEst>8000?' warn':''}">上下文窗口 <strong>${tokenEst>8000?'需截断':'OK'}</strong></div>
+      `;
+
+    }catch(e){
+      showError('处理出错: '+e.message);
+    }finally{
+      processBtn.disabled=false;
+      processBtn.textContent='✧ 处理';
+    }
+  },50);
+}
+
+function showTab(tab){
+  currentTab=tab;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===tab));
+  let content='';
+  if(tab==='aifriendly')content=currentOutput.aifriendly;
+  else if(tab==='markdown')content=currentOutput.markdown;
+  else if(tab==='preview')content=currentOutput.preview;
+  if(tab==='preview'){
+    tabContent.innerHTML='<div class="preview-body">'+(content||'<p style="color:var(--text-dim)">暂无预览</p>')+'</div>';
+  }else{
+    tabContent.innerHTML='<pre>'+escapeHtml(content||'')+'</pre>';
   }
 }
 
-function escapeHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function escapeHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function showError(msg){
+  outputCard.style.display='block';
+  tabContent.innerHTML='<div style="text-align:center;padding:30px;color:#f87171">⚠️ '+msg+'</div>';
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
 }
 
-function showError(msg) {
-  outputCard.style.display = 'block';
-  tabContent.innerHTML = '<div class="empty-state"><p style="color:#f87171">⚠️ ' + msg + '</p></div>';
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-}
-
-function getCurrentText() {
-  if (currentTab === 'preview') return currentOutput.markdown;
-  else if (currentTab === 'aifriendly') return currentOutput.aifriendly;
+function getCurrentText(){
+  if(currentTab==='preview')return currentOutput.markdown;
+  if(currentTab==='aifriendly')return currentOutput.aifriendly;
   return currentOutput.markdown;
 }
 
-function copyContent() {
-  const text = getCurrentText();
-  if (!text) return;
-
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text).then(() => {
-      copyBtn.textContent = '✓ 已复制';
-      copyBtn.classList.add('copied');
-      setTimeout(() => {
-        copyBtn.textContent = '📋 复制';
-        copyBtn.classList.remove('copied');
-      }, 1500);
-    }).catch(() => fallbackCopy(text));
-  } else {
-    fallbackCopy(text);
+function copyContent(){
+  const text=getCurrentText();
+  if(!text)return;
+  if(navigator.clipboard?.writeText){
+    navigator.clipboard.writeText(text).then(()=>flashCopy());
+  }else{
+    const ta=document.createElement('textarea');
+    ta.value=text;ta.style.cssText='position:fixed;opacity:0;';
+    document.body.appendChild(ta);ta.select();
+    try{document.execCommand('copy');flashCopy();}catch(e){}
+    document.body.removeChild(ta);
   }
 }
+function flashCopy(){copyBtn.textContent='✓ 已复制';copyBtn.classList.add('copied');setTimeout(()=>{copyBtn.textContent='📋 复制';copyBtn.classList.remove('copied');},1500);}
 
-function fallbackCopy(text) {
-  const ta = document.createElement('textarea');
-  ta.value = text;
-  ta.style.position = 'fixed';
-  ta.style.opacity = '0';
-  document.body.appendChild(ta);
-  ta.select();
-  try {
-    document.execCommand('copy');
-    copyBtn.textContent = '✓ 已复制';
-    copyBtn.classList.add('copied');
-    setTimeout(() => {
-      copyBtn.textContent = '📋 复制';
-      copyBtn.classList.remove('copied');
-    }, 1500);
-  } catch(e) {}
-  document.body.removeChild(ta);
+function downloadMd(){
+  const text=getCurrentText();if(!text)return;
+  const fn=(getMeta().title||'article').replace(/[^\w\u4e00-\u9fff]/g,'_').slice(0,40)+'.md';
+  const b=new Blob([text],{type:'text/markdown;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=fn;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(a.href);
 }
 
-function downloadMd() {
-  const text = getCurrentText();
-  if (!text) return;
-
-  const meta = getMeta();
-  const filename = (meta.title || 'article')
-    .replace(/[^\w\u4e00-\u9fff]/g, '_')
-    .slice(0, 40) + '.md';
-
-  const blob = new Blob([text], { type: 'text/markdown;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+function clearAll(){
+  inputArea.value='';$('metaTitle').value='';$('metaSource').value='';$('metaDate').value='';
+  outputCard.style.display='none';currentOutput={aifriendly:'',markdown:'',preview:''};inputArea.focus();
 }
 
-function clearAll() {
-  inputArea.value = '';
-  $('metaTitle').value = '';
-  $('metaSource').value = '';
-  $('metaDate').value = '';
-  outputCard.style.display = 'none';
-  currentOutput = { aifriendly: '', markdown: '', preview: '' };
-  inputArea.focus();
-}
+// ═══ Events ═══
+processBtn.addEventListener('click',process);
+clearBtn.addEventListener('click',clearAll);
+copyBtn.addEventListener('click',copyContent);
+dlBtn.addEventListener('click',downloadMd);
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>showTab(t.dataset.tab)));
+inputArea.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();process();}});
+inputArea.addEventListener('paste',()=>{setTimeout(()=>{if(inputArea.value.trim()){const m=getMeta();const raw=inputArea.value;const h1=raw.match(/<h1[^>]*>(.*?)<\/h1>/i);if(!m.title&&h1)$('metaTitle').value=h1[1].replace(/<[^>]+>/g,'').trim();if(!m.title){const fl=raw.replace(/<[^>]+>/g,' ').split('\n').filter(l=>l.trim().length>5&&l.trim().length<100)[0];if(fl)$('metaTitle').value=fl.trim();}}},100);});
 
-// ── Events ──
-processBtn.addEventListener('click', process);
-clearBtn.addEventListener('click', clearAll);
-copyBtn.addEventListener('click', copyContent);
-dlBtn.addEventListener('click', downloadMd);
-
-document.querySelectorAll('.tab').forEach(tab => {
-  tab.addEventListener('click', () => showTab(tab.dataset.tab));
-});
-
-inputArea.addEventListener('keydown', e => {
-  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-    e.preventDefault();
-    process();
-  }
-});
-
-inputArea.addEventListener('paste', () => {
-  setTimeout(() => {
-    if (inputArea.value.trim()) {
-      const meta = detectMetaFromText(inputArea.value);
-      if (meta.title && !$('metaTitle').value) $('metaTitle').value = meta.title;
-      if (meta.date && !$('metaDate').value) $('metaDate').value = meta.date;
-    }
-  }, 100);
-});
-
-console.log('📄 文章→AI工具已加载');
+console.log('📄 文章→AI工具 v2 已加载 · 智能清洗+提取式摘要+关键数据');
 })();
 </script>
 </body>
