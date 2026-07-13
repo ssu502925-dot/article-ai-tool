@@ -6,6 +6,7 @@
 <title>文章 → AI 就绪 · 结构化工具</title>
 <!-- jsdelivr 国内比 cdnjs 快 -->
 <script src="https://cdn.jsdelivr.net/npm/turndown@7.2.0/dist/turndown.min.js"></script>
+<script>window.TurndownService||document.write('<script src="https://unpkg.com/turndown@7.2.0/dist/turndown.min.js"><\/script>');</script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{--bg:#0a0a0f;--surface:#12121a;--card:#1a1a26;--border:#2a2a3a;--text:#d0d0dd;--text-dim:#707088;--accent:#7c5cfc;--accent-dim:#5a3ec8;--green:#4ade80;--warn:#f59e0b;--radius:10px;--font:-apple-system,'Microsoft YaHei','PingFang SC',sans-serif}
@@ -132,7 +133,7 @@ function getMeta(){
 
 // ═══ 噪声清洗 ═══
 function cleanNoise(text){
-  // 去除常见网页噪声
+  // HTML 标签级别：安全删除整块非内容元素
   const patterns=[
     /<script[\s\S]*?<\/script>/gi,
     /<style[\s\S]*?<\/style>/gi,
@@ -141,23 +142,38 @@ function cleanNoise(text){
     /<aside[\s\S]*?<\/aside>/gi,
     /<iframe[\s\S]*?<\/iframe>/gi,
     /<noscript[\s\S]*?<\/noscript>/gi,
-    // 中文噪声模块
-    /(?:广告|推广|赞助).*?(?:\n|$)/gi,
-    /(?:推荐阅读|相关推荐|热门文章|猜你喜欢|阅读更多)[\s\S]*?(?=\n\n|\n#|$)/gi,
-    /(?:免责声明|版权声明|转载请联系)[\s\S]*?(?=\n\n|\n#|$)/gi,
-    /(?:关注我们|扫码关注|订阅).*?(?:\n|$)/gi,
-    /(?:分享到|分享至|一键分享).*?(?:\n|$)/gi,
-    /(?:本文(?:来源|转自|首发).*?(?:\n|$))/gi,
-    /(?:编辑[：:].*?(?:\n|$))/gi,
-    /(?:责任编辑[：:].*?(?:\n|$))/gi,
-    /(?:举报|反馈|投诉).*?(?:\n|$)/gi,
-    /<img[^>]*qr[^>]*>/gi,
-    /<img[^>]*banner[^>]*>/gi,
-    /\n{4,}/g, // 多余空行
+    /<img[^>]*\b(?:qr|qrcode|banner|ad|sponsor)[^>]*>/gi,
+    /<a[^>]*\b(?:share|social|weibo|wechat)[^>]*>[\s\S]*?<\/a>/gi,
   ];
   for(const p of patterns){text=text.replace(p,'');}
-  // 清理空段落标记
-  text=text.replace(/\n{3,}/g,'\n\n');
+  return text.trim();
+}
+
+// ═══ 纯文本级噪声清洗（在 Markdown 上运行） ═══
+function cleanTextNoise(md){
+  let text=md;
+  // 单行噪声：只删明确是噪声的单行（行短且有噪声关键词）
+  const lineNoise=[
+    /^.*(?:扫码关注|关注我们|订阅公众号|添加微信|加微信).{0,30}$/gim,
+    /^.*(?:分享到|分享至|一键分享|转发).{0,20}$/gim,
+    /^.*(?:责任编辑|编辑[：:]|校对[：:]|审核[：:]).{0,30}$/gim,
+    /^.*(?:举报|投诉|反馈|报错).{0,20}$/gim,
+  ];
+  for(const p of lineNoise){text=text.replace(p,'');}
+  // 块级噪声：以噪声标题开头、到空行结束的短块（< 300 字才删）
+  const blockNoise=[
+    /^(?:推荐阅读|相关推荐|热门文章|猜你喜欢|阅读更多|为你推荐|编辑推荐|大家都在看)[\s\S]*?(?=\n\n|\n#|$)/gim,
+    /^(?:免责声明|版权声明|特别声明|声明[：:]|转载请联系)[\s\S]*?(?=\n\n|\n#|$)/gim,
+    /^(?:广告|推广|赞助商|合作伙伴)[\s\S]*?(?=\n\n|\n#|$)/gim,
+  ];
+  for(const p of blockNoise){
+    text=text.replace(p,(match)=>{
+      // 安全阀：超过 300 字的块不删，避免误伤正文
+      if(match.replace(/[#*>\[\]()|_~\- ]/g,'').length>300)return match;
+      return '';
+    });
+  }
+  text=text.replace(/\n{4,}/g,'\n\n');
   return text.trim();
 }
 
@@ -165,23 +181,25 @@ function cleanNoise(text){
 function htmlToMarkdown(raw){
   if(!raw.trim())return'';
   const cleaned=cleanNoise(raw);
+  let result='';
   if(/<[a-z][\s\S]*>/i.test(cleaned)){
     try{
       const td=new TurndownService({headingStyle:'atx',codeBlockStyle:'fenced',emDelimiter:'*',bulletListMarker:'-'});
       td.remove('script,style,iframe,nav,footer,aside,img[src*="qrcode"],img[src*="banner"],img[src*="ad"]');
-      // 自定义规则：保留更多语义
       td.addRule('stripEmptyLinks',{filter:function(node){return node.nodeName==='A'&&!node.textContent.trim()},replacement:function(){return'';}});
-      return td.turndown(cleaned).replace(/\n{4,}/g,'\n\n').trim();
-    }catch(e){return cleaned.replace(/<[^>]+>/g,'').replace(/\n{3,}/g,'\n\n').trim();}
+      result=td.turndown(cleaned).replace(/\n{4,}/g,'\n\n').trim();
+    }catch(e){result=cleaned.replace(/<[^>]+>/g,'').replace(/\n{3,}/g,'\n\n').trim();}
+  }else{
+    result=cleaned.replace(/\r\n/g,'\n').replace(/\n{4,}/g,'\n\n').trim();
   }
-  return cleaned.replace(/\r\n/g,'\n').replace(/\n{4,}/g,'\n\n').trim();
+  return cleanTextNoise(result);
 }
 
 // ═══ 提取式摘要（基于句子评分） ═══
 function extractiveSummary(md){
   const plain=md.replace(/[#*>`\[\]()|_~]/g,'').replace(/\n\n/g,'\n').replace(/\n/g,' ');
-  // 按常见标点分句
-  const sentences=plain.split(/(?<=[。！？；\n\.!\?;])\s*/).filter(s=>s.trim().length>10);
+  // 按标点分句（兼容所有浏览器）
+  const sentences=plain.split(/[。！？；\.!\?;]/).filter(s=>s.trim().length>10).map(s=>s.trim()+'。');
   if(sentences.length<=3)return sentences.join('');
   
   const scored=sentences.map((s,i)=>{
@@ -322,11 +340,14 @@ function buildAIFriendly(md,meta){
 // ═══ 简易 Markdown 渲染（不依赖外部库） ═══
 function simpleRender(md){
   let html=md;
-  // 代码块
-  html=html.replace(/```(\w*)\n([\s\S]*?)```/g,'<pre><code>$2</code></pre>');
+  // 剥 YAML frontmatter
+  if(html.startsWith('---')){const end=html.indexOf('---',3);if(end!==-1)html=html.slice(end+3).trim();}
+  // 代码块（先处理，避免内部其他规则干扰）
+  const codeBlocks=[];
+  html=html.replace(/```(\w*)\n([\s\S]*?)```/g,(_,lang,code)=>{codeBlocks.push('<pre><code>'+escapeHtml(code.trim())+'</code></pre>');return'%%CODE'+ (codeBlocks.length-1) +'%%';});
   // 行内代码
-  html=html.replace(/`([^`]+)`/g,'<code>$1</code>');
-  // 标题
+  html=html.replace(/`([^`]+)`/g,(_,c)=>'<code>'+escapeHtml(c)+'</code>');
+  // 标题（行首 #）
   html=html.replace(/^#### (.+)$/gm,'<h4>$1</h4>');
   html=html.replace(/^### (.+)$/gm,'<h3>$1</h3>');
   html=html.replace(/^## (.+)$/gm,'<h2>$1</h2>');
@@ -337,19 +358,24 @@ function simpleRender(md){
   html=html.replace(/\*(.+?)\*/g,'<em>$1</em>');
   // 引用
   html=html.replace(/^> (.+)$/gm,'<blockquote>$1</blockquote>');
-  // 水平线
-  html=html.replace(/^---$/gm,'<hr>');
+  // 水平线（不在 YAML 区域的 ---）
+  html=html.replace(/^---+$/gm,'<hr>');
   // 无序列表
-  html=html.replace(/^- (.+)$/gm,'<li>$1</li>');
-  html=html.replace(/(<li>[\s\S]*?<\/li>)/g,'<ul>$1</ul>');
+  html=html.replace(/^[*-] (.+)$/gm,'<li>$1</li>');
+  html=html.replace(/((?:<li>[\s\S]*?<\/li>\n?)+)/g,'<ul>$1</ul>');
   // 链接
   html=html.replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2" target="_blank">$1</a>');
-  // 段落
-  html=html.replace(/\n\n/g,'</p><p>');
-  html='<p>'+html+'</p>';
-  // 清理空标签
+  // 连续两个换行 → 段落分隔
+  html=html.replace(/\n\n+/g,'</p><p>');
+  // 包裹段落（仅对无块级标签的文本）
+  if(!/^<(?:h[1-4]|blockquote|ul|pre|hr|table)/.test(html.trim()))html='<p>'+html+'</p>';
+  // 清理空段落
   html=html.replace(/<p>\s*<\/p>/g,'');
   html=html.replace(/<li>\s*<\/li>/g,'');
+  // 修复嵌套问题：p 内不应含块级元素
+  html=html.replace(/<p>(<(?:h[1-4]|blockquote|ul|pre|hr|table)[\s\S]*?)<\/p>/g,'$1');
+  // 恢复代码块
+  html=html.replace(/%%CODE(\d+)%%/g,(_,i)=>codeBlocks[parseInt(i)]||'');
   return html;
 }
 
